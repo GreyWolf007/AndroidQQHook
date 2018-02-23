@@ -307,6 +307,8 @@ public class Main implements IXposedHookLoadPackage {
                             log("SEND DATA->" +
                                     "serviceCmd:" + serviceCmd + "|" +
                                     "requestSsoSeq:" + requestSsoSeq + "|" +
+                                    "sendData Length:" + (sendData.length) + "|" +
+                                    "wupBuffer Length:" + (wupBuffer.length) + "|" +
                                     "imei:" + imei + "|" +
                                     "subscriberId:" + subscriberId + "|" +
                                     "revision:" + revision + "|" +
@@ -316,20 +318,18 @@ public class Main implements IXposedHookLoadPackage {
                                     "uin:" + uin + "|" +
                                     "netWorkType:" + netWorkType + "|" +
                                     "pbtimestamp:" + bytesToHex(pbtimestamp) + "|" +
-                                    "wupBuffer Length:" + (wupBuffer.length) + "|" +
                                     "wupBuffer:" + bytesToHex(wupBuffer) + "|" +
-                                    "sendData Length:" + (sendData.length) + "|" +
                                     "sendData:" + bytesToHex(sendData) + "|");
                         } else {
                             log("SEND DATA->" +
                                     "serviceCmd:" + serviceCmd + "|" +
                                     "requestSsoSeq:" + requestSsoSeq + "|" +
+                                    "sendData Length:" + (sendData.length) + "|" +
+                                    "wupBuffer Length:" + (wupBuffer.length) + "|" +
                                     "msgCookie:" + msgCookie + "|" +
                                     "uin:" + uin + "|" +
                                     "pbtimestamp:" + bytesToHex(pbtimestamp) + "|" +
-                                    "wupBuffer Length:" + (wupBuffer.length) + "|" +
                                     "wupBuffer:" + bytesToHex(wupBuffer) + "|" +
-                                    "sendData Length:" + (sendData.length) + "|" +
                                     "sendData:" + bytesToHex(sendData) + "|");
                         }
 
@@ -430,23 +430,23 @@ public class Main implements IXposedHookLoadPackage {
 
 
                         log("RECEIVE -> onResponse ->" +
-                                "serviceCmd:" + serviceCmd + "|" +
-                                "appSeq:" + appSeq + "|" +
-                                "uin:" + uin + "|" +
+                                        "serviceCmd:" + serviceCmd + "|" +
+                                        "appSeq:" + appSeq + "|" +
+                                        "ssoSeq:" + ssoSeq + "|" +
+                                        "wupBuffer Length:" + (wupBuffer.length) + "|" +
+                                        "uin:" + uin + "|" +
+                                        "resultCode:" + resultCode + "|" +
 //                                "" + p1 + "|" +
 //                                "" + fromServiceMsg + "|" +
-                                "len:" + p3 + "|" +
+                                        "len:" + p3 + "|" +
 //                                "" + bytesToHex(p4) + "|" +
-                                "msName:" + msfCommand + "|" +
-                                "ssoSeq:" + ssoSeq + "|" +
-                                "resultCode:" + resultCode + "|" +
-                                "errorMsg:" + errorMsg + "|" +
-                                "appId:" + appId + "|" +
-                                "flag:" + flag + "|" +
-                                "fromVersion:" + fromVersion + "|" +
-                                "msgCookie:" + bytesToHex(msgCookie) + "|" +
-                                "wupBuffer Length:" + (wupBuffer.length) + "|"+
-                                "wupBuffer:" + bytesToHex(wupBuffer) + "|"
+                                        "msName:" + msfCommand + "|" +
+                                        "errorMsg:" + errorMsg + "|" +
+                                        "appId:" + appId + "|" +
+                                        "flag:" + flag + "|" +
+                                        "fromVersion:" + fromVersion + "|" +
+                                        "msgCookie:" + bytesToHex(msgCookie) + "|" +
+                                        "wupBuffer:" + bytesToHex(wupBuffer) + "|"
                         );
                     }
                 });
