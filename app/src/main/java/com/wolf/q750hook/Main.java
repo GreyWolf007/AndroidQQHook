@@ -316,7 +316,9 @@ public class Main implements IXposedHookLoadPackage {
                                     "uin:" + uin + "|" +
                                     "netWorkType:" + netWorkType + "|" +
                                     "pbtimestamp:" + bytesToHex(pbtimestamp) + "|" +
+                                    "wupBuffer Length:" + (wupBuffer.length) + "|" +
                                     "wupBuffer:" + bytesToHex(wupBuffer) + "|" +
+                                    "sendData Length:" + (sendData.length) + "|" +
                                     "sendData:" + bytesToHex(sendData) + "|");
                         } else {
                             log("SEND DATA->" +
@@ -325,7 +327,9 @@ public class Main implements IXposedHookLoadPackage {
                                     "msgCookie:" + msgCookie + "|" +
                                     "uin:" + uin + "|" +
                                     "pbtimestamp:" + bytesToHex(pbtimestamp) + "|" +
+                                    "wupBuffer Length:" + (wupBuffer.length) + "|" +
                                     "wupBuffer:" + bytesToHex(wupBuffer) + "|" +
+                                    "sendData Length:" + (sendData.length) + "|" +
                                     "sendData:" + bytesToHex(sendData) + "|");
                         }
 
@@ -341,7 +345,8 @@ public class Main implements IXposedHookLoadPackage {
                     protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
                         byte[] data = (byte[]) param.args[0];
                         log("RECEIVE DATA ->" +
-                                "buf:" + bytesToHex(data) + "|"
+                                "Buf Length:" + (data.length) + "|" +
+                                "Buf:" + bytesToHex(data) + "|"
                         );
                     }
                 });
@@ -440,7 +445,9 @@ public class Main implements IXposedHookLoadPackage {
                                 "flag:" + flag + "|" +
                                 "fromVersion:" + fromVersion + "|" +
                                 "msgCookie:" + bytesToHex(msgCookie) + "|" +
-                                "wupBuffer:" + bytesToHex(wupBuffer) + "|");
+                                "wupBuffer Length:" + (wupBuffer.length) + "|"+
+                                "wupBuffer:" + bytesToHex(wupBuffer) + "|"
+                        );
                     }
                 });
 
