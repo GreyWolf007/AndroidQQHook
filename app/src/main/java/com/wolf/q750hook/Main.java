@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.util.Log;
 
 import java.lang.reflect.Field;
+import java.text.SimpleDateFormat;
 import java.util.HashMap;
 
 import de.robv.android.xposed.IXposedHookLoadPackage;
@@ -88,6 +89,39 @@ public class Main implements IXposedHookLoadPackage {
                         byte[][] data = (byte[][]) param.args[17];
                         byte[] sessionkey = data[3];
                         log("SessionKey len=" + sessionkey.length + ":" + bytesToHex(sessionkey));
+
+                        long curr = (long) param.args[2];// System.currentTimeMillis() / 1000;
+                        long[] validTime = (long[]) param.args[18];
+
+                        long _D2_expire_time = validTime[5];
+                        long _sid_expire_time = validTime[6];
+                        long _vKey_expire_time = validTime[2];
+                        long _sKey_expire_time = validTime[1];
+                        long _userStWebSig_expire_time = validTime[4];
+                        long _userA8_expire_time = validTime[3];
+                        long _lsKey_expire_time = validTime[0];
+
+                        log(
+                                "Original" +
+                                        "_D2_expire_time:" + formatTimeUnix10(_D2_expire_time + curr) + " Valid:" + _D2_expire_time + " s|" +
+                                        "_sid_expire_time:" + formatTimeUnix10(_sid_expire_time + curr) + " Valid:" + _sid_expire_time + " s|" +
+                                        "_vKey_expire_time:" + formatTimeUnix10(_vKey_expire_time + curr) + " Valid:" + _vKey_expire_time + " s|" +
+                                        "_sKey_expire_time:" + formatTimeUnix10(_sKey_expire_time + curr) + " Valid:" + _sKey_expire_time + " s|" +
+                                        "_userStWebSig_expire_time:" + formatTimeUnix10(_userStWebSig_expire_time + curr) + " Valid:" + _userStWebSig_expire_time + " s|" +
+                                        "_userA8_expire_time:" + formatTimeUnix10(_userA8_expire_time + curr) + " Valid:" + _userA8_expire_time + " s|" +
+                                        "_lsKey_expire_time:" + formatTimeUnix10(_lsKey_expire_time + curr) + " Valid:" + _lsKey_expire_time + " s|"
+
+                        );
+                        /**
+                         * log
+                         * 02-24 08:50:15.343 I/qqhook  ( 2942): _D2_expire_time:2018/03/17 08:50:15 Valid:1814400 s|_sid_expire_time:2018/03/17 08:50:15 Valid:1814400 s|_vKey_expire_time:2018/03/17 08:50:15 Valid:1814400 s|_sKey_expire_time:2018/02/25 08:50:15 Valid:86400 s|_userStWebSig_expire_time:2018/02/24 10:50:15 Valid:7200 s|_userA8_expire_time:2018/02/25 08:50:15 Valid:86400 s|_lsKey_expire_time:2018/03/16 08:50:15 Valid:1728000 s|
+                         */
+                        //Get wtlogin.exchange_emp
+                        for (int i = 0; i < validTime.length; i++)
+                            validTime[i] = 10;
+//                        validTime[5]=10;
+//                        validTime[6] = 10;
+
                     }
                 }
         );
@@ -507,5 +541,10 @@ public class Main implements IXposedHookLoadPackage {
             hexChars[j * 2 + 1] = hexArray[v & 0x0F];
         }
         return new String(hexChars);
+    }
+
+    public static String formatTimeUnix10(long timeunix) {
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+        return simpleDateFormat.format(timeunix * 1000);
     }
 }
