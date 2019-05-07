@@ -22,7 +22,7 @@
             android:value="true" />
         <meta-data
             android:name="xposeddescription"
-            android:value="MobileQQV750Hook  ©2018 GreyWolf" />
+            android:value="MobileQQV8.0.0Hook  ©2019 GreyWolf" />
         <meta-data
             android:name="xposedminversion"
             android:value="54" />

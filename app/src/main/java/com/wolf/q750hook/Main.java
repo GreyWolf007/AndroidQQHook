@@ -16,7 +16,7 @@ import de.robv.android.xposed.XposedHelpers;
 import de.robv.android.xposed.callbacks.XC_LoadPackage;
 
 /**
- * for mobile qq V750
+ * for mobile qq V8.0.0
  * Created by GreyWolf on 2018/2/21.
  */
 
@@ -41,7 +41,7 @@ public class Main implements IXposedHookLoadPackage {
 
             @Override
             protected void afterHookedMethod(XC_MethodHook.MethodHookParam param) throws Throwable {
-                ClassLoader cl = ((Context) param.args[0]).getClassLoader();
+               /* ClassLoader cl = ((Context) param.args[0]).getClassLoader();
                 Class<?> hookclass = null;
                 final String class_name = "com.tencent.mobileqq.transfile.GroupPicUploadProcessor";
                 try {
@@ -64,10 +64,10 @@ public class Main implements IXposedHookLoadPackage {
                                 // this will be called after the clock was updated by the original method
                                 log("after hook:" + class_name + "---" + getStack());
                             }
-                        });
+                        });*/
             }
         });  // end of findAndHookMethod
-        log("hook attach successful!");
+//        log("hook attach successful!");
 
         XposedHelpers.findAndHookMethod("oicq.wlogin_sdk.tools.EcdhCrypt", loadPackageParam.classLoader, "GenECDHKeyEx",
                 String.class, String.class, String.class,
@@ -190,7 +190,7 @@ public class Main implements IXposedHookLoadPackage {
 
 
         //Test
-        //开启Native层调试  tag libboot
+        //region 开启Native层调试  tag libboot
         XposedHelpers.findAndHookMethod("com.tencent.qphone.base.util.CodecWarpper", loadPackageParam.classLoader, "init",
                 Context.class, boolean.class,
                 new XC_MethodHook() {
@@ -200,9 +200,9 @@ public class Main implements IXposedHookLoadPackage {
                         log("Open libcodecwrapperV2.so Debug Logcat Successful!");
                     }
                 });
+//endregion
 
-
-        //开启oicq.wloginsdk 日志 TAG wlogin_sdk
+        //region 开启oicq.wloginsdk 日志 TAG wlogin_sdk
         final String OICQCLASS = "oicq.wlogin_sdk.tools.util";
         final String wlogin_sdk_tag = "wlogin_sdk";
         XposedHelpers.findAndHookMethod(OICQCLASS, loadPackageParam.classLoader, "LOGD",
@@ -277,8 +277,9 @@ public class Main implements IXposedHookLoadPackage {
                     }
                 }
         );
+        //endregion
 
-        //开启QLog   基本是QQ全局log
+        //region 开启QLog   基本是QQ全局log
         /**
          * CodeWrapper tag MSF.C.CodecWarpper
          */
@@ -343,14 +344,99 @@ public class Main implements IXposedHookLoadPackage {
                         }
                     }
                 });
-
+//endregion
 //Test
 
 
         //Hook数据包
         final String CodecWarpperClass = "com.tencent.qphone.base.util.CodecWarpper";
         /**
-         * 发送包
+         * 发送包 V3
+         */
+        XposedHelpers.findAndHookMethod(CodecWarpperClass, loadPackageParam.classLoader, "nativeEncodeRequest",
+                int.class,
+                String.class,
+                String.class,
+                String.class,
+                String.class,
+                String.class,
+                byte[].class,
+                int.class,
+                int.class,
+                String.class,
+                byte.class,
+                byte.class,
+                byte[].class,
+                boolean.class,
+                new XC_MethodHook() {
+                    @Override
+                    protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
+                        log("nativeEncodeRequest V3");
+                    }
+
+                    @Override
+                    protected void afterHookedMethod(MethodHookParam param) throws Throwable {
+                        int requestSsoSeq = (int) param.args[0];
+                        String imei = (String) param.args[1];
+                        String subscriberId = (String) param.args[2];
+                        String revision = (String) param.args[3];
+                        String serviceCmd = (String) param.args[5];
+                        String msgCookie = bytesToHex((byte[]) param.args[6]);
+                        int appid = (int) param.args[7];
+                        int msfappid = (int) param.args[8];
+                        String uin = (String) param.args[9];
+                        /*byte b = (byte) 0;
+            if (NetConnInfoCenter.isWifiConn()) {
+                b = (byte) 1;
+            } else if (NetConnInfoCenter.isMobileConn()) {
+                indexOf = NetConnInfoCenter.getMobileNetworkType() + 100;
+                if (indexOf > 254) {
+                    indexOf = 254;
+                    if (QLog.isColorLevel()) {
+                        QLog.d("MSF.C.NetConnTag", 2, "error,netWorkType is " + 254);
+                    }
+                }
+                b = (byte) indexOf;
+            }*/
+                        byte netWorkType = (byte) param.args[11];
+                        byte[] wupBuffer = (byte[]) param.args[12];
+
+                        byte[] sendData = (byte[]) param.getResult();
+
+                        if (serviceCmd.startsWith("wtlogin.")) {
+                            log(LOGTAG_PACKET, "SEND DATA->" +
+                                    "serviceCmd:" + serviceCmd + "|" +
+                                    "requestSsoSeq:" + requestSsoSeq + "|" +
+                                    "sendData Length:" + (sendData.length) + "|" +
+                                    "wupBuffer Length:" + (wupBuffer.length) + "|" +
+                                    "imei:" + imei + "|" +
+                                    "subscriberId:" + subscriberId + "|" +
+                                    "revision:" + revision + "|" +
+                                    "msgCookie:" + msgCookie + "|" +
+                                    "appid:" + appid + "|" +
+                                    "msfappid:" + msfappid + "|" +
+                                    "uin:" + uin + "|" +
+                                    "netWorkType:" + netWorkType + "|" +
+                                    "wupBuffer:" + bytesToHex(wupBuffer) + "|" +
+                                    "sendData:" + bytesToHex(sendData) + "|");
+                        } else {
+                            log(LOGTAG_PACKET, "SEND DATA->" +
+                                    "serviceCmd:" + serviceCmd + "|" +
+                                    "requestSsoSeq:" + requestSsoSeq + "|" +
+                                    "sendData Length:" + (sendData.length) + "|" +
+                                    "wupBuffer Length:" + (wupBuffer.length) + "|" +
+                                    "msgCookie:" + msgCookie + "|" +
+                                    "uin:" + uin + "|" +
+                                    "wupBuffer:" + bytesToHex(wupBuffer) + "|" +
+                                    "sendData:" + bytesToHex(sendData) + "|");
+                        }
+
+                    }
+                });
+
+
+        /**
+         * 发送包V2
          */
         XposedHelpers.findAndHookMethod(CodecWarpperClass, loadPackageParam.classLoader, "nativeEncodeRequest",
                 int.class, String.class, String.class, String.class, String
@@ -359,7 +445,7 @@ public class Main implements IXposedHookLoadPackage {
                 new XC_MethodHook() {
                     @Override
                     protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
-//                        log("nativeEncodeRequest V2");
+                        log("nativeEncodeRequest V2");
                     }
 
                     @Override
@@ -412,7 +498,71 @@ public class Main implements IXposedHookLoadPackage {
                     }
                 });
 
+        /**
+         * 发送包V1
+         */
+        XposedHelpers.findAndHookMethod(CodecWarpperClass, loadPackageParam.classLoader, "nativeEncodeRequest",
+                int.class, String.class, String.class, String.class, String.class, String.class, byte[].class,
+                int.class, int.class, String.class, byte.class, byte.class, byte.class, byte[].class,
+                byte[].class, boolean.class,
+                new XC_MethodHook() {
+                    @Override
+                    protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
+                        log("nativeEncodeRequest V1");
+                    }
 
+                    @Override
+                    protected void afterHookedMethod(MethodHookParam param) throws Throwable {
+                        int requestSsoSeq = (int) param.args[0];
+                        String imei = (String) param.args[1];
+                        String subscriberId = (String) param.args[2];
+                        String revision = (String) param.args[3];
+                        String serviceCmd = (String) param.args[5];
+                        String msgCookie = bytesToHex((byte[]) param.args[6]);
+                        int appid = (int) param.args[7];
+                        int msfappid = (int) param.args[8];
+                        String uin = (String) param.args[9];
+                        byte netWorkType = (byte) param.args[11];
+                        byte activeNetworkIpType = (byte) param.args[12];
+                        byte[] reserveFields = (byte[]) param.args[13];
+                        byte[] wupBuffer = (byte[]) param.args[14];
+
+                        byte[] sendData = (byte[]) param.getResult();
+
+                        if (serviceCmd.startsWith("wtlogin.")) {
+                            log(LOGTAG_PACKET, "SEND DATA->" +
+                                    "serviceCmd:" + serviceCmd + "|" +
+                                    "requestSsoSeq:" + requestSsoSeq + "|" +
+                                    "sendData Length:" + (sendData.length) + "|" +
+                                    "wupBuffer Length:" + (wupBuffer.length) + "|" +
+                                    "imei:" + imei + "|" +
+                                    "subscriberId:" + subscriberId + "|" +
+                                    "revision:" + revision + "|" +
+                                    "msgCookie:" + msgCookie + "|" +
+                                    "appid:" + appid + "|" +
+                                    "msfappid:" + msfappid + "|" +
+                                    "uin:" + uin + "|" +
+                                    "netWorkType:" + netWorkType + "|" +
+                                    "activeNetworkIpType:" + activeNetworkIpType + "|" +
+                                    "reserveFields:" + bytesToHex(reserveFields) + "|" +
+                                    "wupBuffer:" + bytesToHex(wupBuffer) + "|" +
+                                    "sendData:" + bytesToHex(sendData) + "|");
+                        } else {
+                            log(LOGTAG_PACKET, "SEND DATA->" +
+                                    "serviceCmd:" + serviceCmd + "|" +
+                                    "requestSsoSeq:" + requestSsoSeq + "|" +
+                                    "sendData Length:" + (sendData.length) + "|" +
+                                    "wupBuffer Length:" + (wupBuffer.length) + "|" +
+                                    "msgCookie:" + msgCookie + "|" +
+                                    "uin:" + uin + "|" +
+                                    "netWorkType:" + netWorkType + "|" +
+                                    "activeNetworkIpType:" + activeNetworkIpType + "|" +
+                                    "reserveFields:" + bytesToHex(reserveFields) + "|" +
+                                    "wupBuffer:" + bytesToHex(wupBuffer) + "|" +
+                                    "sendData:" + bytesToHex(sendData) + "|");
+                        }
+                    }
+                });
         //Hook 接收包
         XposedHelpers.findAndHookMethod(CodecWarpperClass, loadPackageParam.classLoader, "nativeOnReceData",
                 byte[].class,
@@ -428,7 +578,7 @@ public class Main implements IXposedHookLoadPackage {
                 });
 
         final Class FromServiceMsg = XposedHelpers.findClass("com.tencent.qphone.base.remote.FromServiceMsg", loadPackageParam.classLoader);
-        XposedHelpers.findAndHookMethod("com.tencent.mobileqq.msf.core.af$a", loadPackageParam.classLoader, "onResponse",
+        XposedHelpers.findAndHookMethod("com.tencent.mobileqq.msf.core.ag$a", loadPackageParam.classLoader, "onResponse",
                 int.class, Object.class, int.class, byte[].class,
                 new XC_MethodHook() {
                     @Override
@@ -579,7 +729,7 @@ public class Main implements IXposedHookLoadPackage {
     private final static char[] hexArray = "0123456789ABCDEF".toCharArray();
 
     public static String bytesToHex(byte[] bytes) {
-        if (bytes == null) return "";
+        if (bytes == null) return "null";
         char[] hexChars = new char[bytes.length * 2];
         for (int j = 0; j < bytes.length; j++) {
             int v = bytes[j] & 0xFF;
