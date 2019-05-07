@@ -1,5 +1,6 @@
 package com.wolf.q750hook;
 
+import android.app.Application;
 import android.content.Context;
 import android.os.Bundle;
 import android.util.Log;
@@ -23,12 +24,50 @@ public class Main implements IXposedHookLoadPackage {
     static final String MobileQQPN = "com.tencent.mobileqq";
     static final String LOGTAG = "qqhook";
 
+    static final String LOGTAG_PACKET = "qqhook-packet";
+
     @Override
     public void handleLoadPackage(XC_LoadPackage.LoadPackageParam loadPackageParam) throws Throwable {
         if (!loadPackageParam.packageName.equals(MobileQQPN)) {
             return;
         }
         log("Hook MobileQQ Successful!");
+
+        XposedHelpers.findAndHookMethod(Application.class, "attach", Context.class, new XC_MethodHook() {
+            @Override
+            protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
+                // this will be called before the clock was updated by the original method
+            }
+
+            @Override
+            protected void afterHookedMethod(XC_MethodHook.MethodHookParam param) throws Throwable {
+                ClassLoader cl = ((Context) param.args[0]).getClassLoader();
+                Class<?> hookclass = null;
+                final String class_name = "com.tencent.mobileqq.transfile.GroupPicUploadProcessor";
+                try {
+                    hookclass = cl.loadClass(class_name);
+                } catch (Exception e) {
+                    log("[Failed!]Can not find " + class_name);
+                    return;
+                }
+                log("[success!]Find class " + class_name);
+
+                XposedHelpers.findAndHookMethod(hookclass,
+                        "b", StringBuilder.class, new XC_MethodHook() {
+                            @Override
+                            protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
+                                // this will be called before the clock was updated by the original method
+                            }
+
+                            @Override
+                            protected void afterHookedMethod(MethodHookParam param) throws Throwable {
+                                // this will be called after the clock was updated by the original method
+                                log("after hook:" + class_name + "---" + getStack());
+                            }
+                        });
+            }
+        });  // end of findAndHookMethod
+        log("hook attach successful!");
 
         XposedHelpers.findAndHookMethod("oicq.wlogin_sdk.tools.EcdhCrypt", loadPackageParam.classLoader, "GenECDHKeyEx",
                 String.class, String.class, String.class,
@@ -88,7 +127,10 @@ public class Main implements IXposedHookLoadPackage {
                     protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
                         byte[][] data = (byte[][]) param.args[17];
                         byte[] sessionkey = data[3];
+                        byte[] wtsessionticket = data[13];
+                        byte[] wtsessionticketkey = data[13];
                         log("SessionKey len=" + sessionkey.length + ":" + bytesToHex(sessionkey));
+                        log("wt session ticket:" + bytesToHex(wtsessionticket) + "|" + "wtsessionticket key:" + bytesToHex(wtsessionticketkey));
 
                         long curr = (long) param.args[2];// System.currentTimeMillis() / 1000;
                         long[] validTime = (long[]) param.args[18];
@@ -117,8 +159,8 @@ public class Main implements IXposedHookLoadPackage {
                          * 02-24 08:50:15.343 I/qqhook  ( 2942): _D2_expire_time:2018/03/17 08:50:15 Valid:1814400 s|_sid_expire_time:2018/03/17 08:50:15 Valid:1814400 s|_vKey_expire_time:2018/03/17 08:50:15 Valid:1814400 s|_sKey_expire_time:2018/02/25 08:50:15 Valid:86400 s|_userStWebSig_expire_time:2018/02/24 10:50:15 Valid:7200 s|_userA8_expire_time:2018/02/25 08:50:15 Valid:86400 s|_lsKey_expire_time:2018/03/16 08:50:15 Valid:1728000 s|
                          */
                         //Get wtlogin.exchange_emp
-                        for (int i = 0; i < validTime.length; i++)
-                            validTime[i] = 10;
+//                        for (int i = 0; i < validTime.length; i++)
+//                            validTime[i] = 10;
 //                        validTime[5]=10;
 //                        validTime[6] = 10;
 
@@ -338,7 +380,7 @@ public class Main implements IXposedHookLoadPackage {
                         byte[] sendData = (byte[]) param.getResult();
 
                         if (serviceCmd.startsWith("wtlogin.")) {
-                            log("SEND DATA->" +
+                            log(LOGTAG_PACKET, "SEND DATA->" +
                                     "serviceCmd:" + serviceCmd + "|" +
                                     "requestSsoSeq:" + requestSsoSeq + "|" +
                                     "sendData Length:" + (sendData.length) + "|" +
@@ -355,7 +397,7 @@ public class Main implements IXposedHookLoadPackage {
                                     "wupBuffer:" + bytesToHex(wupBuffer) + "|" +
                                     "sendData:" + bytesToHex(sendData) + "|");
                         } else {
-                            log("SEND DATA->" +
+                            log(LOGTAG_PACKET, "SEND DATA->" +
                                     "serviceCmd:" + serviceCmd + "|" +
                                     "requestSsoSeq:" + requestSsoSeq + "|" +
                                     "sendData Length:" + (sendData.length) + "|" +
@@ -378,7 +420,7 @@ public class Main implements IXposedHookLoadPackage {
                     @Override
                     protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
                         byte[] data = (byte[]) param.args[0];
-                        log("RECEIVE DATA ->" +
+                        log(LOGTAG_PACKET, "RECEIVE DATA ->" +
                                 "Buf Length:" + (data.length) + "|" +
                                 "Buf:" + bytesToHex(data) + "|"
                         );
@@ -463,7 +505,7 @@ public class Main implements IXposedHookLoadPackage {
                         }
 
 
-                        log("RECEIVE -> onResponse ->" +
+                        log(LOGTAG_PACKET, "RECEIVE -> onResponse ->" +
                                         "serviceCmd:" + serviceCmd + "|" +
                                         "appSeq:" + appSeq + "|" +
                                         "ssoSeq:" + ssoSeq + "|" +
@@ -529,6 +571,10 @@ public class Main implements IXposedHookLoadPackage {
         XposedBridge.log("qq-hook" + ":" + msg);
     }
 
+    public static void log(String tag, String msg) {
+        Log.i(tag, msg);
+        XposedBridge.log("qq-hook" + ":" + msg);
+    }
 
     private final static char[] hexArray = "0123456789ABCDEF".toCharArray();
 
