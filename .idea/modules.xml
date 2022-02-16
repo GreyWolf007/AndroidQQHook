@@ -2,8 +2,8 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/QQ750Hook.iml" filepath="$PROJECT_DIR$/QQ750Hook.iml" />
-      <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
+      <module fileurl="file://$PROJECT_DIR$/MobileQ750Hook.iml" filepath="$PROJECT_DIR$/MobileQ750Hook.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/app/MobileQ750Hook.app.iml" filepath="$PROJECT_DIR$/.idea/modules/app/MobileQ750Hook.app.iml" />
     </modules>
   </component>
 </project>

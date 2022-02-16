@@ -5,6 +5,8 @@ import android.content.Context;
 import android.os.Bundle;
 import android.util.Log;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.lang.reflect.Field;
 import java.text.SimpleDateFormat;
 import java.util.HashMap;
@@ -169,7 +171,7 @@ public class Main implements IXposedHookLoadPackage {
         );
 
         //Fix Tea Rand
-        XposedHelpers.findAndHookMethod("oicq.wlogin_sdk.tools.a", loadPackageParam.classLoader, "b",
+        XposedHelpers.findAndHookMethod("oicq.wlogin_sdk.tools.b", loadPackageParam.classLoader, "b",
                 new XC_MethodHook() {
                     @Override
                     protected void afterHookedMethod(MethodHookParam param) throws Throwable {
@@ -192,12 +194,21 @@ public class Main implements IXposedHookLoadPackage {
         //Test
         //region 开启Native层调试  tag libboot
         XposedHelpers.findAndHookMethod("com.tencent.qphone.base.util.CodecWarpper", loadPackageParam.classLoader, "init",
-                Context.class, boolean.class,
+                Context.class, boolean.class, boolean.class,
                 new XC_MethodHook() {
                     @Override
                     protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
                         param.args[1] = true;
                         log("Open libcodecwrapperV2.so Debug Logcat Successful!");
+                    }
+                });
+
+        XposedHelpers.findAndHookMethod("com.tencent.qphone.base.util.CodecWarpper", loadPackageParam.classLoader, "getAppid",
+                new XC_MethodHook() {
+                    @Override
+                    protected void afterHookedMethod(MethodHookParam param) throws Throwable {
+                        log("APPID==" + param.getResult());
+
                     }
                 });
 //endregion
@@ -353,6 +364,11 @@ public class Main implements IXposedHookLoadPackage {
         /**
          * 发送包 V3
          */
+        //	int i, String str, String str2, String str3,
+        //		String str4, String str5,
+        //		byte[] bArr, int i2,
+        //		int i3, String str6, byte b, byte b2,
+        //		byte[] bArr2, boolean z
         XposedHelpers.findAndHookMethod(CodecWarpperClass, loadPackageParam.classLoader, "nativeEncodeRequest",
                 int.class,
                 String.class,
@@ -360,6 +376,7 @@ public class Main implements IXposedHookLoadPackage {
                 String.class,
                 String.class,
                 String.class,
+
                 byte[].class,
                 int.class,
                 int.class,
@@ -438,9 +455,15 @@ public class Main implements IXposedHookLoadPackage {
         /**
          * 发送包V2
          */
+        //int i, String str, String str2, String str3, String str4, String str5,
+        // byte[] bArr, int i2, int i3, String str6,
+        // byte b, byte b2, byte[] bArr2, byte[] bArr3, byte[] bArr4, boolean z
         XposedHelpers.findAndHookMethod(CodecWarpperClass, loadPackageParam.classLoader, "nativeEncodeRequest",
                 int.class, String.class, String.class, String.class, String
-                        .class, String.class, byte[].class, int.class, int.class, String.class, byte.class, byte.class,
+                        .class, String.class,
+                byte[].class, int.class, int.class, String.class,
+                byte.class, byte.class,
+                byte[].class,
                 byte[].class, byte[].class, boolean.class,
                 new XC_MethodHook() {
                     @Override
@@ -461,7 +484,7 @@ public class Main implements IXposedHookLoadPackage {
                         String uin = (String) param.args[9];
                         byte netWorkType = (byte) param.args[11];
                         byte[] pbtimestamp = (byte[]) param.args[12];
-                        byte[] wupBuffer = (byte[]) param.args[13];
+                        byte[] wupBuffer = (byte[]) param.args[14];
 
                         byte[] sendData = (byte[]) param.getResult();
 
@@ -501,10 +524,15 @@ public class Main implements IXposedHookLoadPackage {
         /**
          * 发送包V1
          */
+        //int i, String str, String str2, String str3, String str4, String str5,
+        // byte[] bArr, int i2, int i3, String str6,
+        // byte b, byte b2, byte b3, byte[] bArr2, byte[] bArr3, byte[] bArr4, boolean z
         XposedHelpers.findAndHookMethod(CodecWarpperClass, loadPackageParam.classLoader, "nativeEncodeRequest",
-                int.class, String.class, String.class, String.class, String.class, String.class, byte[].class,
-                int.class, int.class, String.class, byte.class, byte.class, byte.class, byte[].class,
-                byte[].class, boolean.class,
+                int.class, String.class, String.class, String.class, String.class, String.class,
+                byte[].class,
+                int.class, int.class, String.class,
+                byte.class, byte.class, byte.class, byte[].class,
+                byte[].class, byte[].class, boolean.class,
                 new XC_MethodHook() {
                     @Override
                     protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
@@ -525,7 +553,7 @@ public class Main implements IXposedHookLoadPackage {
                         byte netWorkType = (byte) param.args[11];
                         byte activeNetworkIpType = (byte) param.args[12];
                         byte[] reserveFields = (byte[]) param.args[13];
-                        byte[] wupBuffer = (byte[]) param.args[14];
+                        byte[] wupBuffer = (byte[]) param.args[15];
 
                         byte[] sendData = (byte[]) param.getResult();
 
@@ -565,20 +593,20 @@ public class Main implements IXposedHookLoadPackage {
                 });
         //Hook 接收包
         XposedHelpers.findAndHookMethod(CodecWarpperClass, loadPackageParam.classLoader, "nativeOnReceData",
-                byte[].class,
+                byte[].class, int.class,
                 new XC_MethodHook() {
                     @Override
                     protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
                         byte[] data = (byte[]) param.args[0];
                         log(LOGTAG_PACKET, "RECEIVE DATA ->" +
                                 "Buf Length:" + (data.length) + "|" +
-                                "Buf:" + bytesToHex(data) + "|"
+                                "Buf:" + bytesToHex(data) + "|i=" + param.args[1]
                         );
                     }
                 });
 
         final Class FromServiceMsg = XposedHelpers.findClass("com.tencent.qphone.base.remote.FromServiceMsg", loadPackageParam.classLoader);
-        XposedHelpers.findAndHookMethod("com.tencent.mobileqq.msf.core.ag$a", loadPackageParam.classLoader, "onResponse",
+        XposedHelpers.findAndHookMethod("com.tencent.mobileqq.msf.core.ae$a", loadPackageParam.classLoader, "onResponse",
                 int.class, Object.class, int.class, byte[].class,
                 new XC_MethodHook() {
                     @Override
@@ -676,6 +704,7 @@ public class Main implements IXposedHookLoadPackage {
                         );
                     }
                 });
+
 
 //        log("Fix Tea Rand value:50");
 
