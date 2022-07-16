@@ -10,6 +10,7 @@ import java.io.StringWriter;
 import java.lang.reflect.Field;
 import java.text.SimpleDateFormat;
 import java.util.HashMap;
+import java.util.UUID;
 
 import de.robv.android.xposed.IXposedHookLoadPackage;
 import de.robv.android.xposed.XC_MethodHook;
@@ -434,8 +435,9 @@ public class Main implements IXposedHookLoadPackage {
                                     "msfappid:" + msfappid + "|" +
                                     "uin:" + uin + "|" +
                                     "netWorkType:" + netWorkType + "|" +
-                                    "wupBuffer:" + bytesToHex(wupBuffer) + "|" +
-                                    "sendData:" + bytesToHex(sendData) + "|");
+                                    "wupBuffer:" + bytesToHex(wupBuffer) + "|"
+//                                    + "sendData:" + bytesToHex(sendData) + "|"
+                            );
                         } else {
                             log(LOGTAG_PACKET, "SEND DATA->" +
                                     "serviceCmd:" + serviceCmd + "|" +
@@ -444,8 +446,9 @@ public class Main implements IXposedHookLoadPackage {
                                     "wupBuffer Length:" + (wupBuffer.length) + "|" +
                                     "msgCookie:" + msgCookie + "|" +
                                     "uin:" + uin + "|" +
-                                    "wupBuffer:" + bytesToHex(wupBuffer) + "|" +
-                                    "sendData:" + bytesToHex(sendData) + "|");
+                                    "wupBuffer:" + bytesToHex(wupBuffer) + "|"
+//                                    + "sendData:" + bytesToHex(sendData) + "|"
+                            );
                         }
 
                     }
@@ -503,8 +506,9 @@ public class Main implements IXposedHookLoadPackage {
                                     "uin:" + uin + "|" +
                                     "netWorkType:" + netWorkType + "|" +
                                     "pbtimestamp:" + bytesToHex(pbtimestamp) + "|" +
-                                    "wupBuffer:" + bytesToHex(wupBuffer) + "|" +
-                                    "sendData:" + bytesToHex(sendData) + "|");
+                                    "wupBuffer:" + bytesToHex(wupBuffer) + "|"
+//                                    + "sendData:" + bytesToHex(sendData) + "|"
+                            );
                         } else {
                             log(LOGTAG_PACKET, "SEND DATA->" +
                                     "serviceCmd:" + serviceCmd + "|" +
@@ -514,8 +518,9 @@ public class Main implements IXposedHookLoadPackage {
                                     "msgCookie:" + msgCookie + "|" +
                                     "uin:" + uin + "|" +
                                     "pbtimestamp:" + bytesToHex(pbtimestamp) + "|" +
-                                    "wupBuffer:" + bytesToHex(wupBuffer) + "|" +
-                                    "sendData:" + bytesToHex(sendData) + "|");
+                                    "wupBuffer:" + bytesToHex(wupBuffer) + "|"
+//                                    + "sendData:" + bytesToHex(sendData) + "|"
+                            );
                         }
 
                     }
@@ -573,8 +578,9 @@ public class Main implements IXposedHookLoadPackage {
                                     "netWorkType:" + netWorkType + "|" +
                                     "activeNetworkIpType:" + activeNetworkIpType + "|" +
                                     "reserveFields:" + bytesToHex(reserveFields) + "|" +
-                                    "wupBuffer:" + bytesToHex(wupBuffer) + "|" +
-                                    "sendData:" + bytesToHex(sendData) + "|");
+                                    "wupBuffer:" + bytesToHex(wupBuffer) + "|"
+//                                    + "sendData:" + bytesToHex(sendData) + "|"
+                            );
                         } else {
                             log(LOGTAG_PACKET, "SEND DATA->" +
                                     "serviceCmd:" + serviceCmd + "|" +
@@ -586,8 +592,9 @@ public class Main implements IXposedHookLoadPackage {
                                     "netWorkType:" + netWorkType + "|" +
                                     "activeNetworkIpType:" + activeNetworkIpType + "|" +
                                     "reserveFields:" + bytesToHex(reserveFields) + "|" +
-                                    "wupBuffer:" + bytesToHex(wupBuffer) + "|" +
-                                    "sendData:" + bytesToHex(sendData) + "|");
+                                    "wupBuffer:" + bytesToHex(wupBuffer) + "|"
+//                                    + "sendData:" + bytesToHex(sendData) + "|"
+                            );
                         }
                     }
                 });
@@ -745,14 +752,24 @@ public class Main implements IXposedHookLoadPackage {
         return "get stack error";
     }
 
+    final static int limit = 1023 * 3;
+
     public static void log(String msg) {
-        Log.i(LOGTAG, msg);
-        XposedBridge.log("qq-hook" + ":" + msg);
+        log(LOGTAG, msg);
     }
 
     public static void log(String tag, String msg) {
-        Log.i(tag, msg);
-        XposedBridge.log("qq-hook" + ":" + msg);
+        String uuid = UUID.randomUUID().toString();
+
+        if (msg.length() > limit) {
+            while (msg.length() > limit) {
+                Log.i(tag, "uuid:" + uuid + ":" + msg.substring(0, limit));
+                msg = msg.substring(limit);
+            }
+            Log.i(tag, "uuid:" + uuid + ":" + msg);
+        } else {
+            Log.i(tag, msg);
+        }
     }
 
     private final static char[] hexArray = "0123456789ABCDEF".toCharArray();
